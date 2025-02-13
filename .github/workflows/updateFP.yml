@@ -1,0 +1,38 @@
+name: Update PIF JSON
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: aosPB-Project/PlayIntegrityFix
+          token: ${{ secrets.gh_token }}
+
+      - name: Fetch gms_certified_props.json
+        run: |
+          curl -sL https://raw.githubusercontent.com/crdroidandroid/android_vendor_certification/15.0/gms_certified_props.json -o gms_certified_props.json
+
+      - name: Update pif.json
+        run: |
+          jq '{
+            FINGERPRINT: .FINGERPRINT,
+            MANUFACTURER: .MANUFACTURER,
+            MODEL: .MODEL,
+            SECURITY_PATCH: ."VERSION.SECURITY_PATCH",
+            DEVICE_INITIAL_SDK_INT: ."VERSION.DEVICE_INITIAL_SDK_INT"
+          }' gms_certified_props.json > module/pif.json  # Removed -r
+
+      - name: Commit and Push Changes
+        env:
+          GH_TOKEN: ${{ secrets.gh_token }}
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          DATE=$(date +"%Y-%m-%d %H:%M:%S")
+          git add module/pif.json
+          git commit -m "[$DATE] Update pif.json from crDroidAndroid/android_vendor_certification"
+          git push https://x-access-token:${GH_TOKEN}@github.com/aosPB-Project/PlayIntegrityFix.git
