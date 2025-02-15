@@ -2,6 +2,11 @@ name: Update PIF JSON
 
 on:
   workflow_dispatch:
+    inputs:
+      json_url:
+        description: "URL of gms_certified_props.json"
+        required: true
+        default: "https://raw.githubusercontent.com/crdroidandroid/android_vendor_certification/15.0/gms_certified_props.json"
 
 jobs:
   update-json:
@@ -12,9 +17,15 @@ jobs:
           repository: aosPB-Project/PlayIntegrityFix
           token: ${{ secrets.gh_token }}
 
+      - name: Extract organization name
+        id: org
+        run: |
+          ORG_NAME=$(echo "${{ github.event.inputs.json_url }}" | awk -F'/' '{print $4}')
+          echo "ORG_NAME=$ORG_NAME" >> $GITHUB_ENV
+
       - name: Fetch gms_certified_props.json
         run: |
-          curl -sL https://raw.githubusercontent.com/crdroidandroid/android_vendor_certification/15.0/gms_certified_props.json -o gms_certified_props.json
+          curl -sL "${{ github.event.inputs.json_url }}" -o gms_certified_props.json
 
       - name: Update pif.json
         run: |
@@ -34,5 +45,5 @@ jobs:
           git config --global user.email "github-actions@github.com"
           DATE=$(date +"%Y-%m-%d %H:%M:%S")
           git add module/pif.json
-          git commit -m "[$DATE] Update pif.json from crDroidAndroid/android_vendor_certification"
+          git commit -m "[$DATE] Update pif.json from $ORG_NAME"
           git push https://x-access-token:${GH_TOKEN}@github.com/aosPB-Project/PlayIntegrityFix.git
