@@ -41,8 +41,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.gh_token }}
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          git config --global user.name "aosPB-BOT"
+          git config --global user.email "aospb-gh-bot1@proton.me"
           DATE=$(date +"%Y-%m-%d %H:%M:%S")
           git add module/pif.json
           git commit -m "[$DATE] Update pif.json from $ORG_NAME"
